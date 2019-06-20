@@ -1,0 +1,118 @@
+---
+title: "Human Movements Analysis"
+author: "Cynthia Tang"
+date: "June 18, 2019"
+output: 
+  html_document:
+    keep_md: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Downloading and Reading in Data  
+```{r Download, eval=FALSE}
+if(!dir.exists("data")) dir.create("data")
+download.file("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv",
+              "data/training.csv", mode = "wb")
+download.file("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv",
+              "data/testing.csv", mode = "wb")
+```
+
+```{r Load, warning=FALSE, message=FALSE}
+training <- read.csv("data/training.csv", na.strings = c("", NA))
+testing <- read.csv("data/testing.csv", na.strings = c("", NA))
+library(caret)
+```
+
+## Tidy Data  
+Removing columns with NAs.  
+```{r rmNA}
+NAs <- apply(training, 2, function(x) sum(is.na(x)))
+iNAs <- which(NAs > 0)
+training <- training[, -iNAs]
+testing <- testing[, -iNAs]
+# str(training)
+```
+
+There are still 60 variables including both continuous and categorical.  
+  
+Removing zero covariates.  
+```{r zeroCovariate}
+nzv <- nearZeroVar(training, saveMetrics = TRUE)
+inzv <- which(nzv[,4] == TRUE)
+training <- training[, -inzv]
+testing <- testing[, -inzv]
+# str(training)
+```
+
+Removing the first five variables unrelated to the movements.  
+```{r fiveCol}
+trainingPara <- training[, -c(1:5)]
+testingPara <- testing[, -c(1:5)]
+ncol(trainingPara); ncol(testingPara)
+```
+
+Correlation.  
+```{r correlation}
+correl <- abs(cor(trainingPara[,-54]))
+diag(correl) <- 0
+corVar <- which(correl > 0.8, arr.ind = TRUE)
+nrow(corVar)
+```
+
+Now, we get the cleaned training and testing data with 53 predictors and 38 of 
+these predictors are highly correlated. Thus, we chose to preprocess with 
+Principle Component Analysis.   
+
+## Data Slicing  
+
+We split training data into training and testing subsets. 70% training data are
+assigned to training subset.
+```{r spliting}
+set.seed(3753)
+inTrain <- createDataPartition(trainingPara$classe, p = 0.70, list = FALSE)
+subtraining <- trainingPara[inTrain,]
+subtesting <- trainingPara[-inTrain,]
+dim(subtraining);dim(subtesting)
+```
+
+## Data Modeling  
+  
+We fit a predictive model using __random forest__ algorithm because it fits a non-linear relationship and automatically selects the optimal predictors. We will use __10-fold cross validation__ when applying the algorithm. We expect the error rate should below 5%.
+
+```{r model, cache=TRUE}
+# random forest
+# set.seed(2314)
+# modFit1 <- randomForest::randomForest(classe ~., data = subtraining, 
+#                  trControl = trainControl(method="cv", 10))
+# modFit1
+# caret
+set.seed(2314)
+modFit2 <- train(classe ~., data = subtraining, 
+                 trControl = trainControl(method="cv", 10))
+modFit2
+modFit2$finalModel
+```
+
+Then, we estimate the performance of the model on testing data.  
+```{r model2}
+# pred1 <- predict(modFit1, newdata = subtesting)
+# confusionMatrix(pred1, subtesting$classe)
+
+pred2 <- predict(modFit2, newdata = subtesting)
+confusionMatrix(pred2, subtesting$classe)
+
+```
+
+The accuracy of the model is `r confusionMatrix(pred2, subtesting$classe)$overall[1]`.  
+
+## Prediction  
+We apply the model to the testing data set.  
+```{r prediction}
+predV <- predict(modFit2, testingPara)
+predV
+```
+
+
