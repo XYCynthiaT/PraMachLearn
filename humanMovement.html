@@ -230,11 +230,11 @@ diag(correl) &lt;- 0
 corVar &lt;- which(correl &gt; 0.8, arr.ind = TRUE)
 nrow(corVar)</code></pre>
 <pre><code>## [1] 38</code></pre>
-<p>Now, we get the cleaned training and testing data with 53 predictors and 38 of these predictors are highly correlated. Thus, we chose to preprocess with Principle Component Analysis.</p>
+<p>Now, we get the cleaned training and testing data with 53 predictors and 38 of these predictors are highly correlated.</p>
 </div>
 <div id="data-slicing" class="section level2">
 <h2>Data Slicing</h2>
-<p>We split training data into training and testing subsets. 70% training data are assigned to training subset.</p>
+<p>We split training data into training and testing subsets. 70% of training data are assigned to training subset.</p>
 <pre class="r"><code>set.seed(3753)
 inTrain &lt;- createDataPartition(trainingPara$classe, p = 0.70, list = FALSE)
 subtraining &lt;- trainingPara[inTrain,]
@@ -245,7 +245,7 @@ dim(subtraining);dim(subtesting)</code></pre>
 </div>
 <div id="data-modeling" class="section level2">
 <h2>Data Modeling</h2>
-<p>We fit a predictive model using <strong>random forest</strong> algorithm because it fits a non-linear relationship and automatically selects the optimal predictors. We will use <strong>10-fold cross validation</strong> when applying the algorithm. We expect the error rate should below 5%.</p>
+<p>We fit a predictive model using <strong>random forest</strong> algorithm because it fits a non-linear relationship and automatically selects the optimal predictors. We will use <strong>10-fold cross validation</strong> when applying the algorithm. We expect the error rate should below 5% so that when apply the model to the 20 cases, the number of wrong predictions should be less than 1 (20*5% = 1).</p>
 <pre class="r"><code># random forest
 # set.seed(2314)
 # modFit1 &lt;- randomForest::randomForest(classe ~., data = subtraining, 

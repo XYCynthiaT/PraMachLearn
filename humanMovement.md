@@ -79,12 +79,11 @@ nrow(corVar)
 ```
 
 Now, we get the cleaned training and testing data with 53 predictors and 38 of 
-these predictors are highly correlated. Thus, we chose to preprocess with 
-Principle Component Analysis.   
+these predictors are highly correlated.    
 
 ## Data Slicing  
 
-We split training data into training and testing subsets. 70% training data are
+We split training data into training and testing subsets. 70% of training data are
 assigned to training subset.
 
 ```r
@@ -105,7 +104,7 @@ dim(subtraining);dim(subtesting)
 
 ## Data Modeling  
   
-We fit a predictive model using __random forest__ algorithm because it fits a non-linear relationship and automatically selects the optimal predictors. We will use __10-fold cross validation__ when applying the algorithm. We expect the error rate should below 5%.
+We fit a predictive model using __random forest__ algorithm because it fits a non-linear relationship and automatically selects the optimal predictors. We will use __10-fold cross validation__ when applying the algorithm. We expect the error rate should below 5% so that when apply the model to the 20 cases, the number of wrong predictions should be less than 1 (20*5% = 1).
 
 
 ```r
